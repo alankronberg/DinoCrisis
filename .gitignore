@@ -1,6 +1,6 @@
-DinoCrisis\.vs\
-DinoCrisis\Intermediate\
-DinoCrisis\Build\
-DinoCrisis\Saved\
-DinoCrisis\Binaries\Android\
+**/.vs/
+**/Intermediate/
+**/Build/
+**/Saved
+**/Binaries/Android/
 DinoCrisis.sln
