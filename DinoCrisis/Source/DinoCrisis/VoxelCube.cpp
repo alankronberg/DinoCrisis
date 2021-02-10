@@ -299,11 +299,6 @@ AVoxelCube::AVoxelCube()
 		cornerBoxes[i]->SetComponentTickEnabled(false);
 	}
 	
-	static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("Material'/Game/Materials/M_Basic.M_Basic'"));
-
-	if (Material.Object != NULL) {
-		material = (UMaterial*)Material.Object;
-	}
 	
 	
 	
