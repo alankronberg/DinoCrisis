@@ -7,6 +7,14 @@
 #include "VoxelCube.h"
 #include "VoxelChunk.generated.h"
 
+
+struct SectionData {
+	AVoxelCube* cubes[1000];
+
+
+	FVector locations[1000];
+};
+
 UCLASS()
 class DINOCRISIS_API AVoxelChunk : public AActor
 {
@@ -16,9 +24,12 @@ public:
 	// Sets default values for this actor's properties
 	AVoxelChunk();
 
-	UProceduralMeshComponent* PMC;
+	class UProceduralMeshComponent* PMC;
 
-	TArray<AVoxelCube*> cubes;
+	SectionData sectionData;
+
+	bool isDirty = false;
+
 
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;

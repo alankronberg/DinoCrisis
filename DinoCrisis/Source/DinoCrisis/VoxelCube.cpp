@@ -3,7 +3,9 @@
 
 #include "VoxelCube.h"
 #include "VoxelChunk.h"
-#include "ProceduralMeshComponent.h"
+#include "CubeWorldPawn.h"
+#include "Math/UnrealMathUtility.h"
+#include "Components/SceneComponent.h"
 
 int edgeTable1[256][16] = {
 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
@@ -269,12 +271,11 @@ int edgeTable1[256][16] = {
 AVoxelCube::AVoxelCube()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
-	PMC = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
-	RootComponent = PMC;
-	//PMC->SetComponentTickEnabled(false);
-	//PMC->SetCullDistance(500.f);
+	root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = root;
+	
 	
 	cornerData.points[0] = FVector(GetActorLocation().X - OFFSET, GetActorLocation().Y - OFFSET, GetActorLocation().Z - OFFSET);
 	cornerData.points[1] = FVector(GetActorLocation().X + OFFSET, GetActorLocation().Y - OFFSET, GetActorLocation().Z - OFFSET);
@@ -288,7 +289,7 @@ AVoxelCube::AVoxelCube()
 	for (int i = 0; i < 8; i++) {
 		FName id = *FString::Printf(TEXT("Corner%d"), i);
 		cornerBoxes.Add(CreateDefaultSubobject<UBoxComponent>(id));
-		cornerBoxes[i]->SetHiddenInGame(false);
+		//cornerBoxes[i]->SetHiddenInGame(false);
 		cornerBoxes[i]->SetBoxExtent(FVector(25, 25, 25));
 		cornerBoxes[i]->SetupAttachment(RootComponent);
 		cornerBoxes[i]->SetWorldLocation(cornerData.points[i], false);
@@ -317,12 +318,6 @@ void AVoxelCube::UpdateMesh()
 	MarchingCubes();
 	parent->UpdateMesh(section);
 	
-	/*
-
-	if (Vertices.Num() > 0) {
-		PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
-	}
-	*/
 }
 
 void AVoxelCube::MarchingCubes()
@@ -456,33 +451,40 @@ void AVoxelCube::incrementCorner7()
 	}
 }
 
+void AVoxelCube::incrementCorner(int corner, int value)
+{
+	cornerData.values[corner] = FMath::Clamp(cornerData.values[corner] + value, 0.f, 1.f);
+	UpdateMesh();
+}
+
 void AVoxelCube::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	
-	if (OtherActor && (OtherActor != this) && OtherComp) {
+	if (ACubeWorldPawn* player = Cast<ACubeWorldPawn>(OtherActor)) {
+		UE_LOG(LogTemp, Warning, TEXT("%d"), player->incrementValue);
 		if (OverlappedComp == cornerBoxes[0]) {
-			incrementCorner0();
+			incrementCorner(0, player->incrementValue);
 		}
 		else if (OverlappedComp == cornerBoxes[1]) {
-			incrementCorner1();
+			incrementCorner(1, player->incrementValue);
 		}
 		else if (OverlappedComp == cornerBoxes[2]) {
-			incrementCorner2();
+			incrementCorner(2, player->incrementValue);
 		}
 		else if (OverlappedComp == cornerBoxes[3]) {
-			incrementCorner3();
+			incrementCorner(3, player->incrementValue);
 		}
 		else if (OverlappedComp == cornerBoxes[4]) {
-			incrementCorner4();
+			incrementCorner(4, player->incrementValue);
 		}
 		else if (OverlappedComp == cornerBoxes[5]) {
-			incrementCorner5();
+			incrementCorner(5, player->incrementValue);
 		}
 		else if (OverlappedComp == cornerBoxes[6]) {
-			incrementCorner6();
+			incrementCorner(6, player->incrementValue);
 		}
 		else if (OverlappedComp == cornerBoxes[7]) {
-			incrementCorner7();
+			incrementCorner(7, player->incrementValue);
 		}
 	}
 }
@@ -503,6 +505,7 @@ void AVoxelCube::Tick(float DeltaTime)
 
 void AVoxelCube::InitMesh()
 {
+	
 
 	if (abs(GetActorLocation().Z - 0) < 0.00001) {
 		cornerData.values[0] = 1;

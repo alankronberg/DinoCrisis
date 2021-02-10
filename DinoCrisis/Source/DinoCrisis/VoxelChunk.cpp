@@ -12,38 +12,41 @@ AVoxelChunk::AVoxelChunk()
 	PrimaryActorTick.bCanEverTick = true;
 	PMC = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProcMesh"));
 	RootComponent = PMC;
+	PMC->bUseAsyncCooking = true;
 	
 }
 
 void AVoxelChunk::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+	if (isDirty) {
+		Vertices.Reset();
+		Triangles.Reset();
+		PMC->ClearAllMeshSections();
+		for (int i = 0; i < 1000; i++) {
+			if (sectionData.cubes[i]) {
+				for (FVector vertex : sectionData.cubes[i]->Vertices) {
+					Vertices.Add(sectionData.locations[i] + vertex);
+				}
+			}
+		}
+		for (int i = 0; i < Vertices.Num(); i += 3) {
+			Triangles.Add(i);
+			Triangles.Add(i + 2);
+			Triangles.Add(i + 1);
+		}
+
+		PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
+		isDirty = false;
+	}
 	
 
 }
 
 void AVoxelChunk::UpdateMesh(int32 section)
 {
-	Vertices.Reset();
-	Triangles.Reset();
-	PMC->ClearAllMeshSections();
-	for (AVoxelCube* cube : cubes) {
-		for (FVector vertex : cube->Vertices) {
-			UE_LOG(LogTemp, Warning, TEXT("%f, %f, %f"), vertex.X, vertex.Y, vertex.Z);
-			Vertices.Add(vertex);
-		}
-	}
-	for (int i = 0; i < Vertices.Num(); i += 3) {
-		Triangles.Add(i);
-		Triangles.Add(i + 2);
-		Triangles.Add(i + 1);
-	}
+	isDirty = true;
 	
-	UE_LOG(LogTemp, Warning, TEXT("Chunk update: Vertex count: %d Triangle Count: %d"), Vertices.Num(), Triangles.Num());
-	
-	
-	PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
 	
 }
 
@@ -51,20 +54,21 @@ void AVoxelChunk::BeginPlay()
 {
 	Super::BeginPlay();
 	int sect = 0;
-	/*for (int z = -200; z < 300; z = z + 100) {*/
-		for (int y = -100; y < 200; y += 100) {
-			//for (int x = -200; x < 300; x += 100) {
-				FVector spawnLoc(GetActorLocation().X, GetActorLocation().Y + y, GetActorLocation().Z);
+	for (int z = -400; z < 600; z = z + 100) {
+		for (int y = -400; y < 600; y += 100) {
+			for (int x = -400; x < 600; x += 100) {
+				FVector spawnLoc(GetActorLocation().X + x, GetActorLocation().Y + y, GetActorLocation().Z + z);
 				FRotator spawnRot(0.f, 0.f, 0.f);
 				FActorSpawnParameters spawnInfo = FActorSpawnParameters();
 				AVoxelCube* cube = GetWorld()->SpawnActor<AVoxelCube>(spawnLoc, spawnRot, spawnInfo);
-				cubes.Add(cube);
 				cube->parent = this;
+				sectionData.cubes[sect] = cube;
+				sectionData.locations[sect] = FVector(x, y, z);
 				cube->section = sect++;
 				cube->InitMesh();
 				
-			//}
+			}
 		}
-	/*}*/
+	}
 	
 }

@@ -26,7 +26,7 @@ public:
 	AVoxelCube();
 
 	UPROPERTY(VisibleAnywhere)
-	class UProceduralMeshComponent* PMC;
+	class USceneComponent* root;
 
 	TArray<UBoxComponent*> cornerBoxes;
 
@@ -66,6 +66,8 @@ protected:
 	void incrementCorner6();
 	void incrementCorner7();
 
+	void incrementCorner(int corner, int value);
+
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -74,7 +76,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable)
+
 	void InitMesh();
 
 };
