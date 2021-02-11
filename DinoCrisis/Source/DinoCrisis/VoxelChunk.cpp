@@ -3,7 +3,7 @@
 
 #include "VoxelChunk.h"
 #include "Engine/World.h"
-#include "ProceduralMeshComponent.h"
+#include "KismetProceduralMeshLibrary.h"
 
 // Sets default values
 AVoxelChunk::AVoxelChunk()
@@ -22,6 +22,9 @@ void AVoxelChunk::Tick(float DeltaTime)
 	if (isDirty) {
 		Vertices.Reset();
 		Triangles.Reset();
+		UVs.Reset();
+		Normals.Reset();
+		Tangents.Reset();
 		PMC->ClearAllMeshSections();
 		for (int i = 0; i < 1000; i++) {
 			if (sectionData.cubes[i]) {
@@ -34,9 +37,14 @@ void AVoxelChunk::Tick(float DeltaTime)
 			Triangles.Add(i);
 			Triangles.Add(i + 2);
 			Triangles.Add(i + 1);
+			UVs.Add(FVector2D(0.f, 0.f));
+			UVs.Add(FVector2D(0.f, 1.f));
+			UVs.Add(FVector2D(1.f, 0.f));
 		}
 
-		PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FLinearColor>(), TArray<FProcMeshTangent>(), true);
+		UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVs, Normals, Tangents);
+
+		PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
 		isDirty = false;
 	}
 	

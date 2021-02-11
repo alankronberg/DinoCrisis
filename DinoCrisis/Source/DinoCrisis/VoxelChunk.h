@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ProceduralMeshComponent.h"
 #include "VoxelCube.h"
 #include "VoxelChunk.generated.h"
 
@@ -24,6 +25,7 @@ public:
 	// Sets default values for this actor's properties
 	AVoxelChunk();
 
+	UPROPERTY(BlueprintReadOnly)
 	class UProceduralMeshComponent* PMC;
 
 	SectionData sectionData;
@@ -33,6 +35,9 @@ public:
 
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
+	TArray<FVector2D> UVs;
+	TArray<FVector> Normals;
+	TArray<FProcMeshTangent> Tangents;
 
 	virtual void Tick(float DeltaTime) override;
 
