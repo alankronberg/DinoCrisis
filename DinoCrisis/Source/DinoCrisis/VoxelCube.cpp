@@ -7,7 +7,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "Components/SceneComponent.h"
 
-int edgeTable1[256][16] = {
+static int edgeTable1[256][16] = {
 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 	{ 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 	{ 0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
