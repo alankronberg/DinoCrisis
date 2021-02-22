@@ -4,6 +4,8 @@
 #include "VoxelChunk.h"
 #include "Engine/World.h"
 #include "KismetProceduralMeshLibrary.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 // Sets default values
 AVoxelChunk::AVoxelChunk()
@@ -77,6 +79,48 @@ void AVoxelChunk::BeginPlay()
 				
 			}
 		}
+	}
+	
+}
+
+void AVoxelChunk::WriteTest()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Inside WriteTest()"));
+	FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
+	FString FileContent;
+	for (AVoxelCube* cube : sectionData.cubes) {
+		if (cube) {
+			FileContent += cube->dumpValues();
+		}
+	}
+	FileContent += TEXT(";");
+	FFileHelper::SaveStringToFile(FileContent, *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
+}
+
+void AVoxelChunk::Overwrite()
+{
+	FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
+	FString FileContent;
+	for (AVoxelCube* cube : sectionData.cubes) {
+		if (cube) {
+			FileContent += cube->dumpValues();
+		}
+	}
+	FileContent += TEXT(";");
+	FFileHelper::SaveStringToFile(FileContent, *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get());
+}
+
+void AVoxelChunk::InitCubesFromFile(TArray<FString> values)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Inside InitCubesFromFile"));
+	int cubeIndx = 0;
+	for (int i = 0; i < values.Num(); i += 8) {
+		TArray<float> cornerVals;
+		for (int j = 0; j < 8; j++) {
+			cornerVals.Add(FCString::Atof(*values[j + i]));
+		}
+		sectionData.cubes[cubeIndx]->fillValues(cornerVals);
+		sectionData.cubes[cubeIndx++]->UpdateMesh();
 	}
 	
 }

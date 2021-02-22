@@ -14,4 +14,6 @@ class DINOCRISIS_API ADinoCrisisGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+	UFUNCTION(BlueprintCallable)
+	FString getMapDataFromFile();
 };

@@ -47,11 +47,11 @@ public:
 	TArray<int32> Triangles;
 	class AVoxelChunk* parent;
 	int32 section;
-
+	void UpdateMesh();
 protected:
 	int isoLevel = 0;
 
-	void UpdateMesh();
+	
 
 	void MarchingCubes();
 
@@ -76,6 +76,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	FString dumpValues();
+
+	void fillValues(TArray<float> values);
 
 	void InitMesh();
 

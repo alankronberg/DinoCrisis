@@ -498,6 +498,23 @@ void AVoxelCube::Tick(float DeltaTime)
 
 }
 
+FString AVoxelCube::dumpValues()
+{
+	FString values;
+	for (int i = 0; i < 8; i++) {
+		values = values + FString::SanitizeFloat(cornerData.values[i]) + TEXT(",");
+	}
+	return values;
+}
+
+void AVoxelCube::fillValues(TArray<float> values)
+{
+	for (int i = 0; i < values.Num(); i++) {
+		cornerData.values[i] = values[i];
+	}
+}
+
+
 void AVoxelCube::InitMesh()
 {
 	

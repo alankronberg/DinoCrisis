@@ -44,4 +44,14 @@ public:
 	void UpdateMesh(int32 section);
 
 	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable)
+	void WriteTest();
+
+	UFUNCTION(BlueprintCallable)
+	void Overwrite();
+
+	UFUNCTION(BlueprintCallable)
+	void InitCubesFromFile(TArray<FString> values);
+	
 };

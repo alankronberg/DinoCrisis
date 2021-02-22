@@ -2,4 +2,13 @@
 
 
 #include "DinoCrisisGameModeBase.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
+FString ADinoCrisisGameModeBase::getMapDataFromFile()
+{
+	FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
+	FString FileContent;
+	FFileHelper::LoadFileToString(FileContent, *FilePath);
+	return FileContent;
+}
