@@ -83,6 +83,32 @@ void AVoxelChunk::BeginPlay()
 	
 }
 
+TArray<float> AVoxelChunk::dumpChunkData()
+{
+	TArray<float> chunkData;
+	for (AVoxelCube* cube : sectionData.cubes) {
+		for (float value : cube->cornerData.values) {
+			chunkData.Add(value);
+		}
+	}
+	return chunkData;
+}
+
+void AVoxelChunk::fillChunkData(TArray<float> chunkData)
+{
+	int cubeIndx = 0;
+	TArray<float> values;
+	for (int i = 0; i < chunkData.Num(); i = i + 8) {
+		for (int j = i; j < (i + 8); j++) {
+			values.Add(chunkData[j]);
+		}
+		sectionData.cubes[cubeIndx]->fillValues(values);
+		sectionData.cubes[cubeIndx]->UpdateMesh();
+		values.Reset();
+		cubeIndx++;
+	}
+}
+
 void AVoxelChunk::WriteTest()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Inside WriteTest()"));

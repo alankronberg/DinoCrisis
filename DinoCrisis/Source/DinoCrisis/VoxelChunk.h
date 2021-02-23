@@ -46,6 +46,12 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
+	TArray<float> dumpChunkData();
+
+	UFUNCTION(BlueprintCallable)
+	void fillChunkData(TArray<float> chunkData);
+
+	UFUNCTION(BlueprintCallable)
 	void WriteTest();
 
 	UFUNCTION(BlueprintCallable)
