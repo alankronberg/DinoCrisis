@@ -4,6 +4,7 @@
 #include "VoxelChunk.h"
 #include "Engine/World.h"
 #include "KismetProceduralMeshLibrary.h"
+#include "NavigationSystem.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
@@ -15,6 +16,7 @@ AVoxelChunk::AVoxelChunk()
 	PMC = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProcMesh"));
 	RootComponent = PMC;
 	PMC->bUseAsyncCooking = true;
+	
 	
 }
 
@@ -47,6 +49,7 @@ void AVoxelChunk::Tick(float DeltaTime)
 		UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVs, Normals, Tangents);
 
 		PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
+		FNavigationSystem::UpdateComponentData(*PMC);
 		isDirty = false;
 	}
 	
