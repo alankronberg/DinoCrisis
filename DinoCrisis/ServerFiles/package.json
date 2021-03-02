@@ -1,0 +1,19 @@
+{
+  "name": "dinocrisismapserver",
+  "version": "1.0.0",
+  "description": "Server files to maintain map uploads",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "multer": "^1.4.2",
+    "path": "^0.12.7",
+    "sqlite3": "^5.0.2",
+    "util": "^0.12.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alan Kronberger",
+  "license": "ISC"
+}
