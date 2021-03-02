@@ -25,7 +25,7 @@ public:
 	// Sets default values for this actor's properties
 	AVoxelChunk();
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	class UProceduralMeshComponent* PMC;
 
 	SectionData sectionData;
