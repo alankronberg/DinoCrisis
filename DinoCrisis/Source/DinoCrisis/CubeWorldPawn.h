@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/DefaultPawn.h"
+#include "SaveGameObject.h"
+#include "Engine.h"
+#include "VoxelChunk.h"
 #include "CubeWorldPawn.generated.h"
 
 /**
@@ -16,4 +19,14 @@ class DINOCRISIS_API ACubeWorldPawn : public ADefaultPawn
 public:
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int incrementValue;
+private:
+	UFUNCTION(BlueprintCallable)
+	void SaveGame();
+
+	UFUNCTION(BlueprintCallable)
+	void LoadGame();
+
+	//UPROPERTY()
+	//AVoxelChunk TheseChunks;
+
 };
