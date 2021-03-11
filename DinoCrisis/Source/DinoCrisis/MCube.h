@@ -8,17 +8,17 @@
 #include "MCube.generated.h"
 
 
-USTRUCT()
-struct FPointData {
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-	FVector points[8];
-
-	UPROPERTY()
-	float values[8];
-};
+//USTRUCT()
+//struct FPointData {
+//	GENERATED_BODY()
+//
+//public:
+//	UPROPERTY()
+//	FVector points[8];
+//
+//	UPROPERTY()
+//	float values[8];
+//};
 
 UCLASS()
 class DINOCRISIS_API AMCube : public APawn

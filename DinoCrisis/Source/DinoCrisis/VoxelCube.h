@@ -9,7 +9,10 @@
 #include "Materials/Material.h"
 #include "VoxelCube.generated.h"
 
+USTRUCT()
 struct FPointData {
+	GENERATED_BODY()
+public:
 	FVector points[8];
 
 
