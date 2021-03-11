@@ -11,11 +11,7 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"ProceduralMeshComponent",
-				"AIModule",
-				"HTTP",
-				"UMG",
-				"Json", 
-				"JsonUtilities"
+				"AIModule"
 			]
 		}
 	]
