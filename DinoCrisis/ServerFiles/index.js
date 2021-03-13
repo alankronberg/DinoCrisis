@@ -47,9 +47,10 @@ app.get("/mapList", async (req, res) => {
 })
 
 app.get("/map", async (req, res) => {
-    if(req.body.id){
+    console.log("Hit /map");
+    if(req.query.id){
         try{
-            const filepath = await Maps.getMap(req.body.id);
+            const filepath = await Maps.getMap(req.query.id);
             res.sendFile(path.join(__dirname, filepath.filepath));
         }catch(err){
             console.log(err);
