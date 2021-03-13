@@ -8,11 +8,15 @@
 			"Name": "DinoCrisis",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"ProceduralMeshComponent",
-				"AIModule"
-			]
+      "AdditionalDependencies": [
+        "Engine",
+        "ProceduralMeshComponent",
+        "AIModule",
+        "HTTP",
+        "UMG",
+        "Json",
+        "JsonUtilities"
+      ]
 		}
 	]
 }
