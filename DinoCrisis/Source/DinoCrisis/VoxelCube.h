@@ -9,7 +9,7 @@
 #include "Materials/Material.h"
 #include "VoxelCube.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FPointData {
 	GENERATED_BODY()
 public:
@@ -33,12 +33,14 @@ public:
 
 	TArray<UBoxComponent*> cornerBoxes;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FPointData cornerData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Materials)
 		UMaterial* material;
 
+	UPROPERTY(BlueprintReadWrite)
+		int32 test;
 
 
 

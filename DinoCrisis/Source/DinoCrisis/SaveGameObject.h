@@ -10,6 +10,18 @@
 /**
  * 
  */
+USTRUCT(BlueprintType)
+struct FChunkSave {
+	GENERATED_BODY()
+public:
+	FChunkSave(){}
+	FChunkSave(TArray<float> chunkData) {
+		this->data = chunkData;
+	}
+	UPROPERTY(BlueprintReadWrite)
+	TArray<float> data;
+};
+
 UCLASS()
 class DINOCRISIS_API USaveGameObject : public USaveGame
 {
@@ -19,6 +31,8 @@ public:
 	USaveGameObject();
 	UPROPERTY(EditAnywhere)
 	FVector PlayerLocation;
-	//TArray<float> Chunks;
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FChunkSave> Chunks;
+	FChunkSave chunk;
 	
 };
