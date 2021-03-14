@@ -12,3 +12,8 @@ FString ADinoCrisisGameModeBase::getMapDataFromFile()
 	FFileHelper::LoadFileToString(FileContent, *FilePath);
 	return FileContent;
 }
+
+void ADinoCrisisGameModeBase::logMessage(FString message)
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *(message));
+}
