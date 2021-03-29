@@ -10,7 +10,6 @@ void ACubeWorldPawn::SaveGame() {
 	//Set the save game instance location equal to the player's current location
 	SaveGameInstance->PlayerLocation = this->GetActorLocation();
 	//Saving the chunks to the save game instance
-	//SaveGameInstance->Chunks = TheseChunks.dumpChunkData();
 	//Save Game Instance
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("Slot1"), 0);
 	//Logging a message showing we saved the game
@@ -26,7 +25,6 @@ void ACubeWorldPawn::LoadGame() {
 	//Set the player's position from the saved game file
 	this->SetActorLocation(SaveGameInstance->PlayerLocation);
 	//Initializing the chunks
-	//TheseChunks.fillChunkData(SaveGameInstance->Chunks);
 	//Logging a message showing we loaded the game
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Game Loaded."));
 }
