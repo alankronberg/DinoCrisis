@@ -31,11 +31,18 @@ app.get("/", (req, res) => {
     res.send("My power level is over 9000!!!!");
 })
 
+// app.post("/uploadMap", (req, res) => {
+//     console.log(req.body);
+//     res.sendStatus(200);
+// });
+
 app.post("/uploadMap", mapUploader.single("map"), async (req, res) => {
+    console.log(req.body.name);
     try{
         await Maps.addMap(req.file.path, req.body.name);
-        res.send("Uploaded file!");
+        res.sendStatus(200);
     }catch(err){
+        res.sendStatus(500);
         console.log(err);
     }
 });
@@ -48,6 +55,7 @@ app.get("/mapList", async (req, res) => {
 
 app.get("/map", async (req, res) => {
     console.log("Hit /map");
+    console.log(req.query.id);
     if(req.query.id){
         try{
             const filepath = await Maps.getMap(req.query.id);

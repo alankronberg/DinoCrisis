@@ -25,6 +25,7 @@ public:
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FListDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMapDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FErrorDelegate);
 
 UCLASS()
 class DINOCRISIS_API UMapListWidget : public UUserWidget
@@ -53,4 +54,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 		FMapDelegate OnMapDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+		FMapDelegate OnErrorDelegate;
 };

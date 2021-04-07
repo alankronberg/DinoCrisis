@@ -37,6 +37,9 @@ void UMapListWidget::OnMapListResponseRecieved(FHttpRequestPtr Request, FHttpRes
 		OnListDelegate.Broadcast();
 		UE_LOG(LogTemp, Warning, TEXT("After"));
 	}
+	else {
+		OnErrorDelegate.Broadcast();
+	}
 }
 
 void UMapListWidget::downloadMap(int32 mapID)
@@ -56,8 +59,11 @@ void UMapListWidget::OnDownloadMapResponseRecieved(FHttpRequestPtr Request, FHtt
 
 	if (bWasSuccessful) {
 		FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
-		
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *(Response->GetContentAsString()));
 		FFileHelper::SaveStringToFile(Response->GetContentAsString(), *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get());
 		OnMapDelegate.Broadcast();
+	}
+	else {
+		OnErrorDelegate.Broadcast();
 	}
 }

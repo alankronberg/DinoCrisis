@@ -6,11 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "VoxelCube.h"
+#include "CubeComponent.h"
+#include "CubeSceneComponent.h"
 #include "VoxelChunk.generated.h"
 
 
 struct SectionData {
-	AVoxelCube* cubes[1000];
+	UCubeSceneComponent* cubes[1000];
 
 
 	FVector locations[1000];

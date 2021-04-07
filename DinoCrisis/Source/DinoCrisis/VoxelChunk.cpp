@@ -11,13 +11,34 @@
 // Sets default values
 AVoxelChunk::AVoxelChunk()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PMC = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProcMesh"));
 	RootComponent = PMC;
 	PMC->bUseAsyncCooking = true;
-	
-	
+
+	int cLoc = 0;
+	for (int z = -400; z < 600; z = z + 100) {
+		for (int y = -400; y < 600; y += 100) {
+			for (int x = -400; x < 600; x += 100) {
+				sectionData.locations[cLoc++] = FVector(x, y, z);
+
+			}
+		}
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		FName id = *FString::Printf(TEXT("Cube%d"), i);
+		sectionData.cubes[i] = CreateDefaultSubobject<UCubeSceneComponent>(id);		
+		sectionData.cubes[i]->SetupAttachment(RootComponent);
+		sectionData.cubes[i]->SetWorldLocation(sectionData.locations[i], false);
+		sectionData.cubes[i]->SetComponentTickEnabled(false);
+		sectionData.cubes[i]->parent = this;
+		sectionData.cubes[i]->section = i;
+		sectionData.cubes[i]->InitMesh();
+	}
+	Tick(0.0);
+
 }
 
 void AVoxelChunk::Tick(float DeltaTime)
@@ -52,21 +73,21 @@ void AVoxelChunk::Tick(float DeltaTime)
 		FNavigationSystem::UpdateComponentData(*PMC);
 		isDirty = false;
 	}
-	
+
 
 }
 
 void AVoxelChunk::UpdateMesh(int32 section)
 {
 	isDirty = true;
-	
-	
+
+
 }
 
 void AVoxelChunk::BeginPlay()
 {
 	Super::BeginPlay();
-	int sect = 0;
+	/*int sect = 0;
 	for (int z = -400; z < 600; z = z + 100) {
 		for (int y = -400; y < 600; y += 100) {
 			for (int x = -400; x < 600; x += 100) {
@@ -79,17 +100,17 @@ void AVoxelChunk::BeginPlay()
 				sectionData.locations[sect] = FVector(x, y, z);
 				cube->section = sect++;
 				cube->InitMesh();
-				
+
 			}
 		}
-	}
-	
+	}*/
+
 }
 
 TArray<float> AVoxelChunk::dumpChunkData()
 {
 	TArray<float> chunkData;
-	for (AVoxelCube* cube : sectionData.cubes) {
+	for (UCubeSceneComponent* cube : sectionData.cubes) {
 		for (float value : cube->cornerData.values) {
 			chunkData.Add(value);
 		}
@@ -117,7 +138,7 @@ void AVoxelChunk::WriteTest()
 	UE_LOG(LogTemp, Warning, TEXT("Inside WriteTest()"));
 	FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
 	FString FileContent;
-	for (AVoxelCube* cube : sectionData.cubes) {
+	for (UCubeSceneComponent* cube : sectionData.cubes) {
 		if (cube) {
 			FileContent += cube->dumpValues();
 		}
@@ -130,7 +151,7 @@ void AVoxelChunk::Overwrite()
 {
 	FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
 	FString FileContent;
-	for (AVoxelCube* cube : sectionData.cubes) {
+	for (UCubeSceneComponent* cube : sectionData.cubes) {
 		if (cube) {
 			FileContent += cube->dumpValues();
 		}
@@ -151,5 +172,5 @@ void AVoxelChunk::InitCubesFromFile(TArray<FString> values)
 		sectionData.cubes[cubeIndx]->fillValues(cornerVals);
 		sectionData.cubes[cubeIndx++]->UpdateMesh();
 	}
-	
+
 }

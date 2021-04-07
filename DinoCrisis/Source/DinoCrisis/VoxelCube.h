@@ -5,19 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include <Engine.h>
+#include "CubeComponent.h"
 #include "Components/BoxComponent.h"
 #include "Materials/Material.h"
 #include "VoxelCube.generated.h"
 
-USTRUCT(BlueprintType)
-struct FPointData {
-	GENERATED_BODY()
-public:
-	FVector points[8];
 
-
-	float values[8];
-};
 
 UCLASS()
 class DINOCRISIS_API AVoxelCube : public AActor
