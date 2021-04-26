@@ -12,6 +12,11 @@ struct Cube {
 	int32 corners[8][3];
 };
 
+const int CUBES_PER_SIDE = 10;
+const int CUBE_SIZE = 10000;
+
+const int NUM_CUBES = CUBES_PER_SIDE * CUBES_PER_SIDE * CUBES_PER_SIDE;
+
 UCLASS()
 class DINOCRISIS_API AVoxelChunkV2 : public AActor
 {
@@ -24,7 +29,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	class UProceduralMeshComponent* PMC;
 
-	int32 cornerValues[11][11][11];
+	int32 cornerValues[CUBES_PER_SIDE + 1][CUBES_PER_SIDE + 1][CUBES_PER_SIDE + 1];
 	Cube cubes[1000];
 
 	bool isDirty = false;

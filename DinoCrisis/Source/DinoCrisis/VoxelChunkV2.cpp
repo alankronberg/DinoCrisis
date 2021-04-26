@@ -5,7 +5,8 @@
 #include "KismetProceduralMeshLibrary.h"
 
 #include "NavigationSystem.h"
-
+#include "Engine/World.h"
+#include "Misc/DateTime.h"
 #include "CubeWorldPawn.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -282,7 +283,7 @@ AVoxelChunkV2::AVoxelChunkV2()
 
 	rootLoc = GetActorLocation();
 
-	UE_LOG(LogTemp, Warning, TEXT("Chunk location: %s"), *GetActorLocation().ToString())
+	int hSize = CUBES_PER_SIDE / 2 * CUBE_SIZE;
 
 	hitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBox"));
 	hitBox->SetupAttachment(RootComponent);
@@ -290,12 +291,12 @@ AVoxelChunkV2::AVoxelChunkV2()
 	hitBox->SetCollisionProfileName(TEXT("Terrain"));
 	hitBox->OnComponentBeginOverlap.AddDynamic(this, &AVoxelChunkV2::OnOverlapBegin);
 	hitBox->SetComponentTickEnabled(false);
-	hitBox->SetWorldLocation(GetActorLocation() + FVector(500, 500, 500), false);
-	hitBox->SetBoxExtent(FVector(500, 500, 500));
+	hitBox->SetWorldLocation(GetActorLocation() + FVector(hSize, hSize, hSize), false);
+	hitBox->SetBoxExtent(FVector(hSize, hSize, hSize));
 	hitBox->SetHiddenInGame(false);
 
 
-	int x = 0;
+	/*int x = 0;
 	int y = 0;
 	int z = 0;
 
@@ -334,7 +335,7 @@ AVoxelChunkV2::AVoxelChunkV2()
 			y = 0;
 			z += 1;
 		}
-	}
+	}*/
 
 	
 }
@@ -345,10 +346,10 @@ void AVoxelChunkV2::BeginPlay()
 	Super::BeginPlay();
 
 
-	for (int z = 0; z < 11; z++) {
-		for (int y = 0; y < 11; y++) {
-			for (int x = 0; x < 11; x++) {
-				if (GetActorLocation().Z + z * 100 < 0) {
+	for (int z = 0; z < CUBES_PER_SIDE + 1; z++) {
+		for (int y = 0; y < CUBES_PER_SIDE + 1; y++) {
+			for (int x = 0; x < CUBES_PER_SIDE + 1; x++) {
+				if (z <= CUBES_PER_SIDE / 2) {
 					cornerValues[x][y][z] = 1;
 				}
 				else {
@@ -365,57 +366,116 @@ void AVoxelChunkV2::BeginPlay()
 
 void AVoxelChunkV2::MarchingCubes()
 {
-	UE_LOG(LogTemp, Warning, TEXT("IN MARCHING CUBES"));
-	for (int i = 0; i < 1000; i++) {
+	int x = 0;
+	int y = 0;
+	int z = 0;
+	for (int i = 0; i < NUM_CUBES; i++) {
 		int cubeIndex = 0;
-		for (int j = 0; j < 8; j++) {
+		/*for (int j = 0; j < 8; j++) {
 			int x = cubes[i].corners[j][0];
 			int y = cubes[i].corners[j][1];
 			int z = cubes[i].corners[j][2];
 			if (cornerValues[x][y][z] <= isoLevel) {
 				cubeIndex += pow(2, j);
 			}
+		}*/
+		int x0 = x;
+		int y0 = y;
+		int z0 = z;
+		int x1 = x + 1;
+		int y1 = y;
+		int z1 = z;
+		int x2 = x + 1;
+		int y2 = y + 1;
+		int z2 = z;
+		int x3 = x;
+		int y3 = y + 1;
+		int z3 = z;
+		int x4 = x;
+		int y4 = y;
+		int z4 = z + 1;
+		int x5 = x + 1;
+		int y5 = y;
+		int z5 = z + 1;
+		int x6 = x + 1;
+		int y6 = y + 1;
+		int z6 = z + 1;
+		int x7 = x;
+		int y7 = y + 1;
+		int z7 = z + 1;
+		if (cornerValues[x0][y0][z0] <= isoLevel) {
+			cubeIndex += pow(2, 0);
+		}
+		if (cornerValues[x1][y1][z1] <= isoLevel) {
+			cubeIndex += pow(2, 1);
+		}
+		if (cornerValues[x2][y2][z2] <= isoLevel) {
+			cubeIndex += pow(2, 2);
+		}
+		if (cornerValues[x3][y3][z3] <= isoLevel) {
+			cubeIndex += pow(2, 3);
+		}
+		if (cornerValues[x4][y4][z4] <= isoLevel) {
+			cubeIndex += pow(2, 4);
+		}
+		if (cornerValues[x5][y5][z5] <= isoLevel) {
+			cubeIndex += pow(2, 5);
+		}
+		if (cornerValues[x6][y6][z6] <= isoLevel) {
+			cubeIndex += pow(2, 6);
+		}
+		if (cornerValues[x7][y7][z7] <= isoLevel) {
+			cubeIndex += pow(2, 7);
 		}
 		if (cubeIndex != 0 && cubeIndex != 255) {
 			int* tEdges = edgeTable1[cubeIndex];
 			for (int j = 0; *(tEdges + j) != -1; j++) {
 				if (*(tEdges + j) == 0) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[0][0], cubes[i].corners[0][1], cubes[i].corners[0][2]) * 100), rootLoc + (FVector(cubes[i].corners[1][0], cubes[i].corners[1][1], cubes[i].corners[1][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE), rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 1) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[1][0], cubes[i].corners[1][1], cubes[i].corners[1][2]) * 100), rootLoc + (FVector(cubes[i].corners[2][0], cubes[i].corners[2][1], cubes[i].corners[2][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE), rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 2) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[2][0], cubes[i].corners[2][1], cubes[i].corners[2][2]) * 100), rootLoc + (FVector(cubes[i].corners[3][0], cubes[i].corners[3][1], cubes[i].corners[3][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE), rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 3) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[3][0], cubes[i].corners[3][1], cubes[i].corners[3][2]) * 100), rootLoc + (FVector(cubes[i].corners[0][0], cubes[i].corners[0][1], cubes[i].corners[0][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE), rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 4) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[4][0], cubes[i].corners[4][1], cubes[i].corners[4][2]) * 100), rootLoc + (FVector(cubes[i].corners[5][0], cubes[i].corners[5][1], cubes[i].corners[5][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE), rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 5) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[5][0], cubes[i].corners[5][1], cubes[i].corners[5][2]) * 100), rootLoc + (FVector(cubes[i].corners[6][0], cubes[i].corners[6][1], cubes[i].corners[6][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE), rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 6) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[6][0], cubes[i].corners[6][1], cubes[i].corners[6][2]) * 100), rootLoc + (FVector(cubes[i].corners[7][0], cubes[i].corners[7][1], cubes[i].corners[7][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE), rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 7) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[7][0], cubes[i].corners[7][1], cubes[i].corners[7][2]) * 100), rootLoc + (FVector(cubes[i].corners[4][0], cubes[i].corners[4][1], cubes[i].corners[4][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE), rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 8) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[4][0], cubes[i].corners[4][1], cubes[i].corners[4][2]) * 100), rootLoc + (FVector(cubes[i].corners[0][0], cubes[i].corners[0][1], cubes[i].corners[0][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE), rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 9) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[5][0], cubes[i].corners[5][1], cubes[i].corners[5][2]) * 100), rootLoc + (FVector(cubes[i].corners[1][0], cubes[i].corners[1][1], cubes[i].corners[1][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE), rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE)));
 				}
 				else if (*(tEdges + j) == 10) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[6][0], cubes[i].corners[6][1], cubes[i].corners[6][2]) * 100), rootLoc + (FVector(cubes[i].corners[2][0], cubes[i].corners[2][1], cubes[i].corners[2][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE), rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE)));
 				}
 				else {
-					Vertices.Add(Midpoint(rootLoc + (FVector(cubes[i].corners[7][0], cubes[i].corners[7][1], cubes[i].corners[7][2]) * 100), rootLoc + (FVector(cubes[i].corners[3][0], cubes[i].corners[3][1], cubes[i].corners[3][2]) * 100)));
+					Vertices.Add(Midpoint(rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE), rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE)));
 				}
 			}
+		}
+		x += 1;
+		if (x == CUBES_PER_SIDE) {
+			x = 0;
+			y += 1;
+		}
+		if (y == CUBES_PER_SIDE) {
+			y = 0;
+			z += 1;
 		}
 	}
 }
@@ -436,18 +496,17 @@ void AVoxelChunkV2::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		int32 x = target.X;
 		int32 y = target.Y;
 		int32 z = target.Z;
-		UE_LOG(LogTemp, Warning, TEXT("Local location: %d %d %d"), x, y, z);
-		if (x % 100 >= 50) {
-			x = FMath::Clamp(x / 100 + 1, 0, 10);
+		if (x % CUBE_SIZE >= CUBE_SIZE / 2) {
+			x = FMath::Clamp(x / CUBE_SIZE + 1, 0, CUBES_PER_SIDE);
 		}
 		else {
-			x = FMath::Clamp(x / 100, 0, 10);
+			x = FMath::Clamp(x / CUBE_SIZE, 0, CUBES_PER_SIDE);
 		}
-		if (y % 100 >= 50) {
-			y = FMath::Clamp(y / 100 + 1, 0, 10);
+		if (y % CUBE_SIZE >= CUBE_SIZE / 2) {
+			y = FMath::Clamp(y / CUBE_SIZE + 1, 0, CUBES_PER_SIDE);
 		}
 		else {
-			y = FMath::Clamp(y / 100, 0, 10);
+			y = FMath::Clamp(y / CUBE_SIZE, 0, CUBES_PER_SIDE);
 		}
 		/*if (z % 10 >= 5) {
 			z = z / 10 + 1;
@@ -456,17 +515,14 @@ void AVoxelChunkV2::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			z = z / 10;
 		}*/
 		if (player->incrementValue == 1) {
-			z = FMath::Clamp(z / 100 + 1, 0, 10);
+			z = FMath::Clamp(z / CUBE_SIZE + 1, 0, CUBES_PER_SIDE);
 		}
 		else {
-			z = FMath::Clamp(z / 100, 0, 10);
+			z = FMath::Clamp(z / CUBE_SIZE, 0, CUBES_PER_SIDE);
 		}
 		//z = z / 100 + player->incrementValue;
 		//UE_LOG(LogTemp, Warning, TEXT("X: %d Y: %d Z: %d"), x, y, z);
-		UE_LOG(LogTemp, Warning, TEXT("Corner Value before: %d"), cornerValues[x][y][z]);
 		cornerValues[x][y][z] = FMath::Clamp(float(cornerValues[x][y][z]) + player->incrementValue, 0.f, 1.f);
-		x = x / 10;
-		y = y / 10;
 		isDirty = true;
 
 	}
@@ -484,7 +540,13 @@ void AVoxelChunkV2::Tick(float DeltaTime)
 		Normals.Reset();
 		Tangents.Reset();
 		PMC->ClearAllMeshSections();
+		FDateTime Time = FDateTime::Now();
+		int64 before = Time.ToUnixTimestamp();
+
 		MarchingCubes();
+		Time = FDateTime::Now();
+		int64 after = Time.ToUnixTimestamp();
+		UE_LOG(LogTemp, Warning, TEXT("Time after MC: %d"), after - before);
 		for (int i = 0; i < Vertices.Num(); i += 3) {
 			Triangles.Add(i);
 			Triangles.Add(i + 2);
@@ -495,8 +557,12 @@ void AVoxelChunkV2::Tick(float DeltaTime)
 		}
 
 		UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVs, Normals, Tangents);
-
+		Time = FDateTime::Now();
+		before = Time.ToUnixTimestamp();
 		PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
+		Time = FDateTime::Now();
+		after = Time.ToUnixTimestamp();
+		UE_LOG(LogTemp, Warning, TEXT("Time after Mesh update: %f"), after - before);
 		FNavigationSystem::UpdateComponentData(*PMC);
 		isDirty = false;
 	}
