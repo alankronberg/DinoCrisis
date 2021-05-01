@@ -16,7 +16,6 @@ class DINOCRISIS_API ABaseDinoCharacter : public ACharacter
 	GENERATED_BODY()
 public:
 	// Sets default values for this character's properties
-	//ABaseDinoCharacter();	
 	
 protected:
 	// Called when the game starts or when spawned
@@ -32,14 +31,24 @@ protected:
 	bool checkStarvingStatus();
 
 protected:
-	int health;
-	int maxHealth;
-	int hunger;
-	int maxHunger;
-	float slowSpeed;
-	float normalSpeed;
-	bool isInjured;
-	bool isStarving;
+	UPROPERTY(BlueprintReadWrite)
+		int health;
+	UPROPERTY(BlueprintReadWrite)
+		int maxHealth;
+	UPROPERTY(BlueprintReadWrite)
+		int hunger;
+	UPROPERTY(BlueprintReadWrite)
+		int maxHunger;
+	UPROPERTY(BlueprintReadWrite)
+		float slowSpeed;
+	UPROPERTY(BlueprintReadWrite)
+		float normalSpeed;
+	UPROPERTY(BlueprintReadWrite)
+		bool isInjured;
+	UPROPERTY(BlueprintReadWrite)
+		bool isStarving;
+	UWorld* world;
+	class ADinoCrisisGameModeBase* gameMode;
 
 public:	
 	FTimerHandle MemberTimerHandle;

@@ -23,4 +23,6 @@ protected:
 	virtual void BeginPlay() override;
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* HerbivoreCollision = nullptr;
+	UWorld* world;
+	class ADinoCrisisGameModeBase* gameMode;
 };

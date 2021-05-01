@@ -2,20 +2,23 @@
 
 
 #include "BaseDinoCharacter.h"
+#include "DinoCrisisGameModeBase.h"
 
 // Sets default values
-/*
-ABaseDinoCharacter::ABaseDinoCharacter()
-{
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-	DinoCollision = CreateDefaultSubobject<UBoxComponent>(FName("Dino Collision"));
-}
-*/
+
 // Called when the game starts or when spawned
 void ABaseDinoCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	world = GetWorld();
+	gameMode = Cast<ADinoCrisisGameModeBase>(world->GetAuthGameMode());
+	if (world)
+	{
+		if (gameMode)
+		{
+			gameMode->allDinos.Add(this);
+		}
+	}
 	GetWorldTimerManager().SetTimer(MemberTimerHandle, this, &ABaseDinoCharacter::healthAndHungerCycle, 2.0f, true, 5.0f);
 }
 

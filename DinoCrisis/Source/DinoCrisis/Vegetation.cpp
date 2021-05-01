@@ -3,6 +3,7 @@
 
 #include "Vegetation.h"
 #include "BaseHerbivoreCharacter.h"
+#include "DinoCrisisGameModeBase.h"
 
 // Sets default values
 AVegetation::AVegetation()
@@ -17,6 +18,15 @@ AVegetation::AVegetation()
 void AVegetation::BeginPlay()
 {
 	Super::BeginPlay();
+	world = GetWorld();
+	gameMode = Cast<ADinoCrisisGameModeBase>(world->GetAuthGameMode());
+	if (world)
+	{
+		if (gameMode)
+		{
+			gameMode->allVegetation.Add(this);
+		}
+	}
 	HerbivoreCollision->OnComponentBeginOverlap.AddDynamic(this, &AVegetation::OnOverlapBegin);
 }
 
