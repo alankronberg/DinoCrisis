@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Particles/ParticleSystem.h"
 #include "ProceduralMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "VoxelChunkV2.generated.h"
 
-struct Cube {
-	int32 corners[8][3];
-};
 
-const int CUBES_PER_SIDE = 10;
-const int CUBE_SIZE = 10000;
+const int CUBES_PER_SIDE = 40;
+const int CUBE_SIZE = 100;
+const int MAX_VERTS = 15 * CUBES_PER_SIDE * CUBES_PER_SIDE * CUBES_PER_SIDE;
 
 const int NUM_CUBES = CUBES_PER_SIDE * CUBES_PER_SIDE * CUBES_PER_SIDE;
 
@@ -29,10 +29,16 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	class UProceduralMeshComponent* PMC;
 
-	int32 cornerValues[CUBES_PER_SIDE + 1][CUBES_PER_SIDE + 1][CUBES_PER_SIDE + 1];
-	Cube cubes[1000];
 
-	bool isDirty = false;
+	UPROPERTY(EditAnywhere)
+	class UParticleSystem* dust;
+
+	int32 cornerValues[CUBES_PER_SIDE + 1][CUBES_PER_SIDE + 1][CUBES_PER_SIDE + 1];
+	TArray<FVector> cubeVerts[CUBES_PER_SIDE][CUBES_PER_SIDE][CUBES_PER_SIDE];
+
+
+
+	
 
 	UBoxComponent* hitBox;
 
@@ -44,6 +50,12 @@ public:
 	TArray<FVector> Normals;
 	TArray<FProcMeshTangent> Tangents;
 
+	TQueue<FVector> ChangeMade;
+	TQueue<float> Values;
+	TQueue<int32> OnGoingChange;
+	TQueue<int32> FinishedChange;
+	TQueue<UParticleSystemComponent*> dusts;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -52,7 +64,7 @@ protected:
 
 
 
-	void MarchingCubes();
+	void MarchingCubes(int tX, int tY, int tZ);
 
 	FVector Midpoint(FVector point1, FVector point2);
 
@@ -64,4 +76,42 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	TArray<int32> dumpChunkData();
+
+	UFUNCTION(BlueprintCallable)
+	void fillChunkData(TArray<int32> chunkData);
+
+	UFUNCTION(BlueprintCallable)
+	void Write();
+
+	UFUNCTION(BlueprintCallable)
+	void Overwrite();
+
+	UFUNCTION(BlueprintCallable)
+	void InitCubesFromFile(TArray<FString> values);
+
+};
+
+
+class MeshCalculator : public FNonAbandonableTask
+{
+	AVoxelChunkV2* chunk;
+
+public:
+	/*Default constructor*/
+	MeshCalculator(AVoxelChunkV2* chunk)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Beginning OF THREAD CONSTRUCTOR"));
+		this->chunk = chunk;
+	}
+
+	//his function is needed from the API of the engine.
+	FORCEINLINE TStatId GetStatId() const
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT(MeshCalculator, STATGROUP_ThreadPoolAsyncTasks);
+	}
+
+	/*This function is executed when we tell our task to execute*/
+	void DoWork();
 };

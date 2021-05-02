@@ -3,10 +3,9 @@
 
 #include "VoxelChunkV2.h"
 #include "KismetProceduralMeshLibrary.h"
-
+#include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
 #include "Engine/World.h"
-#include "Misc/DateTime.h"
 #include "CubeWorldPawn.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -280,9 +279,10 @@ AVoxelChunkV2::AVoxelChunkV2()
 	PMC = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProcMesh"));
 	RootComponent = PMC;
 	PMC->bUseAsyncCooking = true;
-
+	PMC->SetCullDistance(10000.0f);
+	
 	rootLoc = GetActorLocation();
-
+	
 	int hSize = CUBES_PER_SIDE / 2 * CUBE_SIZE;
 
 	hitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBox"));
@@ -292,64 +292,17 @@ AVoxelChunkV2::AVoxelChunkV2()
 	hitBox->OnComponentBeginOverlap.AddDynamic(this, &AVoxelChunkV2::OnOverlapBegin);
 	hitBox->SetComponentTickEnabled(false);
 	hitBox->SetWorldLocation(GetActorLocation() + FVector(hSize, hSize, hSize), false);
-	hitBox->SetBoxExtent(FVector(hSize, hSize, hSize));
-	hitBox->SetHiddenInGame(false);
-
-
-	/*int x = 0;
-	int y = 0;
-	int z = 0;
-
-	for (int i = 0; i < 1000; i++) {
-		cubes[i].corners[0][0] = x;
-		cubes[i].corners[0][1] = y;
-		cubes[i].corners[0][2] = z;
-		cubes[i].corners[1][0] = x + 1;
-		cubes[i].corners[1][1] = y;
-		cubes[i].corners[1][2] = z;
-		cubes[i].corners[2][0] = x + 1;
-		cubes[i].corners[2][1] = y + 1;
-		cubes[i].corners[2][2] = z;
-		cubes[i].corners[3][0] = x;
-		cubes[i].corners[3][1] = y + 1;
-		cubes[i].corners[3][2] = z;
-		cubes[i].corners[4][0] = x;
-		cubes[i].corners[4][1] = y;
-		cubes[i].corners[4][2] = z + 1;
-		cubes[i].corners[5][0] = x + 1;
-		cubes[i].corners[5][1] = y;
-		cubes[i].corners[5][2] = z + 1;
-		cubes[i].corners[6][0] = x + 1;
-		cubes[i].corners[6][1] = y + 1;
-		cubes[i].corners[6][2] = z + 1;
-		cubes[i].corners[7][0] = x;
-		cubes[i].corners[7][1] = y + 1;
-		cubes[i].corners[7][2] = z + 1;
-
-		x += 1;
-		if (x == 10) {
-			x = 0;
-			y += 1;
-		}
-		if (y == 10) {
-			y = 0;
-			z += 1;
-		}
-	}*/
-
-	
-}
-
-// Called when the game starts or when spawned
-void AVoxelChunkV2::BeginPlay()
-{
-	Super::BeginPlay();
+	hitBox->SetBoxExtent(FVector(hSize - CUBE_SIZE, hSize - CUBE_SIZE, hSize - CUBE_SIZE));
+	//hitBox->SetHiddenInGame(false);
+	Vertices.Reserve(MAX_VERTS);
+	Triangles.Reserve(MAX_VERTS);
+	UVs.Reserve(MAX_VERTS);
 
 
 	for (int z = 0; z < CUBES_PER_SIDE + 1; z++) {
 		for (int y = 0; y < CUBES_PER_SIDE + 1; y++) {
 			for (int x = 0; x < CUBES_PER_SIDE + 1; x++) {
-				if (z <= CUBES_PER_SIDE / 2) {
+				if (z == 0) {
 					cornerValues[x][y][z] = 1;
 				}
 				else {
@@ -359,123 +312,140 @@ void AVoxelChunkV2::BeginPlay()
 		}
 	}
 
+	//for (int z = 0; z < CUBES_PER_SIDE; z++) {
+		for (int y = 0; y < CUBES_PER_SIDE; y++) {
+			for (int x = 0; x < CUBES_PER_SIDE; x++) {
+				MarchingCubes(x, y, 0);
+			}
+		}
+	//}
 
-	isDirty = true;
+
+	
+	//for (int z = 0; z < CUBES_PER_SIDE; z++) {
+		for (int y = 0; y < CUBES_PER_SIDE; y++) {
+			for (int x = 0; x < CUBES_PER_SIDE; x++) {
+				Vertices.Append(cubeVerts[x][y][0]);
+			}
+		}
+	//}
+	for (int i = 0; i < Vertices.Num(); i += 3) {
+		Triangles.Add(i);
+		Triangles.Add(i + 2);
+		Triangles.Add(i + 1);
+		UVs.Add(FVector2D(0.f, 0.f));
+		UVs.Add(FVector2D(0.f, 1.f));
+		UVs.Add(FVector2D(1.f, 0.f));
+	}
+	PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
+	FNavigationSystem::UpdateComponentData(*PMC);
 	
 }
 
-void AVoxelChunkV2::MarchingCubes()
+// Called when the game starts or when spawned
+void AVoxelChunkV2::BeginPlay()
 {
-	int x = 0;
-	int y = 0;
-	int z = 0;
-	for (int i = 0; i < NUM_CUBES; i++) {
-		int cubeIndex = 0;
-		/*for (int j = 0; j < 8; j++) {
-			int x = cubes[i].corners[j][0];
-			int y = cubes[i].corners[j][1];
-			int z = cubes[i].corners[j][2];
-			if (cornerValues[x][y][z] <= isoLevel) {
-				cubeIndex += pow(2, j);
+	Super::BeginPlay();
+}
+
+void AVoxelChunkV2::MarchingCubes(int tX, int tY, int tZ)
+{
+	for (int z = FMath::Clamp(tZ - 1, 0, CUBES_PER_SIDE); z < tZ + 1 && z < CUBES_PER_SIDE; z++) {
+		for (int y = FMath::Clamp(tY - 1, 0, CUBES_PER_SIDE); y < tY + 1 && y < CUBES_PER_SIDE; y++) {
+			for (int x = FMath::Clamp(tX - 1, 0, CUBES_PER_SIDE); x < tX + 1 && x < CUBES_PER_SIDE; x++) {
+				TArray<FVector>* Verts = &(cubeVerts[x][y][z]);
+				Verts->Reset(15);
+				int cubeIndex = 0;
+				int x0 = x;
+				int y0 = y;
+				int z0 = z;
+				int x1 = x + 1;
+				int y1 = y;
+				int z1 = z;
+				int x2 = x + 1;
+				int y2 = y + 1;
+				int z2 = z;
+				int x3 = x;
+				int y3 = y + 1;
+				int z3 = z;
+				int x4 = x;
+				int y4 = y;
+				int z4 = z + 1;
+				int x5 = x + 1;
+				int y5 = y;
+				int z5 = z + 1;
+				int x6 = x + 1;
+				int y6 = y + 1;
+				int z6 = z + 1;
+				int x7 = x;
+				int y7 = y + 1;
+				int z7 = z + 1;
+				if (cornerValues[x0][y0][z0] <= isoLevel) {
+					cubeIndex += pow(2, 0);
+				}
+				if (cornerValues[x1][y1][z1] <= isoLevel) {
+					cubeIndex += pow(2, 1);
+				}
+				if (cornerValues[x2][y2][z2] <= isoLevel) {
+					cubeIndex += pow(2, 2);
+				}
+				if (cornerValues[x3][y3][z3] <= isoLevel) {
+					cubeIndex += pow(2, 3);
+				}
+				if (cornerValues[x4][y4][z4] <= isoLevel) {
+					cubeIndex += pow(2, 4);
+				}
+				if (cornerValues[x5][y5][z5] <= isoLevel) {
+					cubeIndex += pow(2, 5);
+				}
+				if (cornerValues[x6][y6][z6] <= isoLevel) {
+					cubeIndex += pow(2, 6);
+				}
+				if (cornerValues[x7][y7][z7] <= isoLevel) {
+					cubeIndex += pow(2, 7);
+				}
+				if (cubeIndex != 0 && cubeIndex != 255) {
+					int* tEdges = edgeTable1[cubeIndex];
+					for (int j = 0; *(tEdges + j) != -1; j++) {
+						if (*(tEdges + j) == 0) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE), rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 1) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE), rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 2) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE), rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 3) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE), rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 4) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE), rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 5) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE), rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 6) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE), rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 7) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE), rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 8) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE), rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 9) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE), rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE)));
+						}
+						else if (*(tEdges + j) == 10) {
+							Verts->Add(Midpoint(rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE), rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE)));
+						}
+						else {
+							Verts->Add(Midpoint(rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE), rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE)));
+						}
+					}
+				}
 			}
-		}*/
-		int x0 = x;
-		int y0 = y;
-		int z0 = z;
-		int x1 = x + 1;
-		int y1 = y;
-		int z1 = z;
-		int x2 = x + 1;
-		int y2 = y + 1;
-		int z2 = z;
-		int x3 = x;
-		int y3 = y + 1;
-		int z3 = z;
-		int x4 = x;
-		int y4 = y;
-		int z4 = z + 1;
-		int x5 = x + 1;
-		int y5 = y;
-		int z5 = z + 1;
-		int x6 = x + 1;
-		int y6 = y + 1;
-		int z6 = z + 1;
-		int x7 = x;
-		int y7 = y + 1;
-		int z7 = z + 1;
-		if (cornerValues[x0][y0][z0] <= isoLevel) {
-			cubeIndex += pow(2, 0);
-		}
-		if (cornerValues[x1][y1][z1] <= isoLevel) {
-			cubeIndex += pow(2, 1);
-		}
-		if (cornerValues[x2][y2][z2] <= isoLevel) {
-			cubeIndex += pow(2, 2);
-		}
-		if (cornerValues[x3][y3][z3] <= isoLevel) {
-			cubeIndex += pow(2, 3);
-		}
-		if (cornerValues[x4][y4][z4] <= isoLevel) {
-			cubeIndex += pow(2, 4);
-		}
-		if (cornerValues[x5][y5][z5] <= isoLevel) {
-			cubeIndex += pow(2, 5);
-		}
-		if (cornerValues[x6][y6][z6] <= isoLevel) {
-			cubeIndex += pow(2, 6);
-		}
-		if (cornerValues[x7][y7][z7] <= isoLevel) {
-			cubeIndex += pow(2, 7);
-		}
-		if (cubeIndex != 0 && cubeIndex != 255) {
-			int* tEdges = edgeTable1[cubeIndex];
-			for (int j = 0; *(tEdges + j) != -1; j++) {
-				if (*(tEdges + j) == 0) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE), rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 1) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE), rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 2) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE), rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 3) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE), rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 4) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE), rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 5) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE), rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 6) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE), rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 7) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE), rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 8) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x4, y4, z4) * CUBE_SIZE), rootLoc + (FVector(x0, y0, z0) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 9) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x5, y5, z5) * CUBE_SIZE), rootLoc + (FVector(x1, y1, z1) * CUBE_SIZE)));
-				}
-				else if (*(tEdges + j) == 10) {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x6, y6, z6) * CUBE_SIZE), rootLoc + (FVector(x2, y2, z2) * CUBE_SIZE)));
-				}
-				else {
-					Vertices.Add(Midpoint(rootLoc + (FVector(x7, y7, z7) * CUBE_SIZE), rootLoc + (FVector(x3, y3, z3) * CUBE_SIZE)));
-				}
-			}
-		}
-		x += 1;
-		if (x == CUBES_PER_SIDE) {
-			x = 0;
-			y += 1;
-		}
-		if (y == CUBES_PER_SIDE) {
-			y = 0;
-			z += 1;
 		}
 	}
 }
@@ -491,40 +461,43 @@ FVector AVoxelChunkV2::Midpoint(FVector point1, FVector point2)
 
 void AVoxelChunkV2::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Overlap Occured"));
 	if (ACubeWorldPawn* player = Cast<ACubeWorldPawn>(OtherActor)) {
-		FVector target = OtherComp->GetComponentLocation() - GetActorLocation();
+		FVector target;
+		//USceneComponent* cube = OtherComp->GetChildComponent(1);
+		if (player->incrementValue == 1) {
+			target = player->incrementActor->GetComponentLocation() - GetActorLocation();
+		}
+		else {
+			target = player->decrementActor->GetComponentLocation() - GetActorLocation();
+		}
+		
+		dusts.Enqueue(UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), dust, OtherComp->GetComponentLocation()));
 		int32 x = target.X;
 		int32 y = target.Y;
 		int32 z = target.Z;
 		if (x % CUBE_SIZE >= CUBE_SIZE / 2) {
-			x = FMath::Clamp(x / CUBE_SIZE + 1, 0, CUBES_PER_SIDE);
+			x = FMath::Clamp(x / CUBE_SIZE + 1, 1, CUBES_PER_SIDE - 1);
 		}
 		else {
-			x = FMath::Clamp(x / CUBE_SIZE, 0, CUBES_PER_SIDE);
+			x = FMath::Clamp(x / CUBE_SIZE, 1, CUBES_PER_SIDE - 1);
 		}
 		if (y % CUBE_SIZE >= CUBE_SIZE / 2) {
-			y = FMath::Clamp(y / CUBE_SIZE + 1, 0, CUBES_PER_SIDE);
+			y = FMath::Clamp(y / CUBE_SIZE + 1, 1, CUBES_PER_SIDE - 1);
 		}
 		else {
-			y = FMath::Clamp(y / CUBE_SIZE, 0, CUBES_PER_SIDE);
+			y = FMath::Clamp(y / CUBE_SIZE, 1, CUBES_PER_SIDE - 1);
 		}
-		/*if (z % 10 >= 5) {
-			z = z / 10 + 1;
-		}
-		else {
-			z = z / 10;
-		}*/
-		if (player->incrementValue == 1) {
-			z = FMath::Clamp(z / CUBE_SIZE + 1, 0, CUBES_PER_SIDE);
+		if (z % CUBE_SIZE >= CUBE_SIZE / 2) {
+			z = FMath::Clamp(z / CUBE_SIZE + 1, 1, CUBES_PER_SIDE - 1);
 		}
 		else {
-			z = FMath::Clamp(z / CUBE_SIZE, 0, CUBES_PER_SIDE);
+			z = FMath::Clamp(z / CUBE_SIZE, 1, CUBES_PER_SIDE);
 		}
-		//z = z / 100 + player->incrementValue;
-		//UE_LOG(LogTemp, Warning, TEXT("X: %d Y: %d Z: %d"), x, y, z);
-		cornerValues[x][y][z] = FMath::Clamp(float(cornerValues[x][y][z]) + player->incrementValue, 0.f, 1.f);
-		isDirty = true;
-
+		
+		ChangeMade.Enqueue(FVector(x,y,z));
+		Values.Enqueue(player->incrementValue);
+		
 	}
 }
 
@@ -532,39 +505,138 @@ void AVoxelChunkV2::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 void AVoxelChunkV2::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (isDirty) {
-		Vertices.Reset();
-		Triangles.Reset();
-		UVs.Reset();
-		Normals.Reset();
-		Tangents.Reset();
-		PMC->ClearAllMeshSections();
-		FDateTime Time = FDateTime::Now();
-		int64 before = Time.ToUnixTimestamp();
-
-		MarchingCubes();
-		Time = FDateTime::Now();
-		int64 after = Time.ToUnixTimestamp();
-		UE_LOG(LogTemp, Warning, TEXT("Time after MC: %d"), after - before);
-		for (int i = 0; i < Vertices.Num(); i += 3) {
-			Triangles.Add(i);
-			Triangles.Add(i + 2);
-			Triangles.Add(i + 1);
-			UVs.Add(FVector2D(0.f, 0.f));
-			UVs.Add(FVector2D(0.f, 1.f));
-			UVs.Add(FVector2D(1.f, 0.f));
-		}
-
-		UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVs, Normals, Tangents);
-		Time = FDateTime::Now();
-		before = Time.ToUnixTimestamp();
+	if (!FinishedChange.IsEmpty()) {
 		PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
-		Time = FDateTime::Now();
-		after = Time.ToUnixTimestamp();
-		UE_LOG(LogTemp, Warning, TEXT("Time after Mesh update: %f"), after - before);
 		FNavigationSystem::UpdateComponentData(*PMC);
-		isDirty = false;
+		int32 test1;
+		UParticleSystemComponent* curDust;
+		dusts.Dequeue(curDust);
+		curDust->DestroyComponent();
+		FinishedChange.Dequeue(test1);
+		OnGoingChange.Dequeue(test1);
+	}
+	else if (!ChangeMade.IsEmpty() && OnGoingChange.IsEmpty()){
+		FVector point;
+		float value;
+		ChangeMade.Dequeue(point);
+		Values.Dequeue(value);
+		if (cornerValues[int(point.X)][int(point.Y)][int(point.Z)] == value) {
+			UParticleSystemComponent* curDust;
+			dusts.Dequeue(curDust);
+			curDust->DestroyComponent();
+		}
+		else {
+			cornerValues[int(point.X)][int(point.Y)][int(point.Z)] = FMath::Clamp(float(cornerValues[int(point.X)][int(point.Y)][int(point.Z)]) + value, 0.f, 1.f);
+			MarchingCubes(point.X, point.Y, point.Z);
+			(new FAutoDeleteAsyncTask<MeshCalculator>(this))->StartBackgroundTask();
+			OnGoingChange.Enqueue(1);
+		}
 	}
 }
 
+TArray<int32> AVoxelChunkV2::dumpChunkData()
+{
+	TArray<int32> chunkData;
+	for (int32 x = 0; x <= CUBES_PER_SIDE; x++) {
+		for (int32 y = 0; y <= CUBES_PER_SIDE; y++) {
+			for (int32 z = 0; z <= CUBES_PER_SIDE; z++) {
+				chunkData.Add(cornerValues[x][y][z]);
+			}
+		}
+	}
+	return chunkData;
+}
+
+void AVoxelChunkV2::fillChunkData(TArray<int32> chunkData)
+{
+	int32 index = 0;
+	for (int32 x = 0; x <= CUBES_PER_SIDE; x++) {
+		for (int32 y = 0; y <= CUBES_PER_SIDE; y++) {
+			for (int32 z = 0; z <= CUBES_PER_SIDE; z++) {
+				cornerValues[x][y][z] = chunkData[index++];
+			}
+		}
+	}
+
+	for (int z = 0; z < CUBES_PER_SIDE; z++) {
+		for (int y = 0; y < CUBES_PER_SIDE; y++) {
+			for (int x = 0; x < CUBES_PER_SIDE; x++) {
+				MarchingCubes(x, y, z);
+			}
+		}
+	}
+
+
+
+	for (int z = 0; z < CUBES_PER_SIDE; z++) {
+		for (int y = 0; y < CUBES_PER_SIDE; y++) {
+			for (int x = 0; x < CUBES_PER_SIDE; x++) {
+				Vertices.Append(cubeVerts[x][y][z]);
+			}
+		}
+	}
+	for (int i = 0; i < Vertices.Num(); i += 3) {
+		Triangles.Add(i);
+		Triangles.Add(i + 2);
+		Triangles.Add(i + 1);
+		UVs.Add(FVector2D(0.f, 0.f));
+		UVs.Add(FVector2D(0.f, 1.f));
+		UVs.Add(FVector2D(1.f, 0.f));
+	}
+	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVs, Normals, Tangents);
+	PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
+	FNavigationSystem::UpdateComponentData(*PMC);
+}
+
+void AVoxelChunkV2::Write()
+{
+	FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
+	FString FileContent;
+	for (int32 x = 0; x <= CUBES_PER_SIDE; x++) {
+		for (int32 y = 0; y <= CUBES_PER_SIDE; y++) {
+			for (int32 z = 0; z <= CUBES_PER_SIDE; z++) {
+				FileContent += (FString::FromInt(cornerValues[x][y][z]) + TEXT(","));
+			}
+		}
+	}
+	FileContent += TEXT("\n");
+	FFileHelper::SaveStringToFile(FileContent, *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
+}
+
+void AVoxelChunkV2::Overwrite()
+{
+}
+
+void AVoxelChunkV2::InitCubesFromFile(TArray<FString> values)
+{
+}
+
+
+void MeshCalculator::DoWork()
+{
+	UE_LOG(LogTemp, Warning, TEXT("IN WORKER THREAD"));
+	chunk->Vertices.Reset(MAX_VERTS);
+	chunk->Triangles.Reset(MAX_VERTS);
+	chunk->UVs.Reset(MAX_VERTS);
+	chunk->Normals.Reset();
+	chunk->Tangents.Reset();
+	for (int z = 0; z < CUBES_PER_SIDE; z++) {
+		for (int y = 0; y < CUBES_PER_SIDE; y++) {
+			for (int x = 0; x < CUBES_PER_SIDE; x++) {
+				chunk->Vertices.Append(chunk->cubeVerts[x][y][z]);
+			}
+		}
+	}
+	for (int i = 0; i < chunk->Vertices.Num(); i += 3) {
+		chunk->Triangles.Add(i);
+		chunk->Triangles.Add(i + 2);
+		chunk->Triangles.Add(i + 1);
+		chunk->UVs.Add(FVector2D(0.f, 0.f));
+		chunk->UVs.Add(FVector2D(0.f, 1.f));
+		chunk->UVs.Add(FVector2D(1.f, 0.f));
+	}
+
+	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(chunk->Vertices, chunk->Triangles, chunk->UVs, chunk->Normals, chunk->Tangents);
+	chunk->FinishedChange.Enqueue(1);
+	
+}

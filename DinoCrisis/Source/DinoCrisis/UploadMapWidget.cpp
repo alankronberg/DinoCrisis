@@ -7,7 +7,7 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
-void UUploadMapWidget::uploadMap()
+void UUploadMapWidget::uploadMap(FString mapName)
 {
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 	FString FilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("/MapData.map");
@@ -32,7 +32,7 @@ void UUploadMapWidget::uploadMap()
 	/// <summary>
 	/// CHANGE THIS TO TAKE USER INPUT
 	/// </summary>
-	FString mapName = "TEST MAP 9002";
+	//FString mapName = "TEST MAP 9002";
 
 	Content.Append((uint8*)TCHAR_TO_UTF8(*b1), b1.Len());
 	Content.Append((uint8*)TCHAR_TO_UTF8(*b2), b2.Len());

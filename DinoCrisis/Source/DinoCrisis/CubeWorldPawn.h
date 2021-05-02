@@ -19,6 +19,12 @@ class DINOCRISIS_API ACubeWorldPawn : public ADefaultPawn
 public:
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int incrementValue;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		USceneComponent* incrementActor;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		USceneComponent* decrementActor;
 private:
 	UFUNCTION(BlueprintCallable)
 	void SaveGame();

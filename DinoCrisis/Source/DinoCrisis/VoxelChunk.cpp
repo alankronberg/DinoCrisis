@@ -37,7 +37,7 @@ AVoxelChunk::AVoxelChunk()
 		sectionData.cubes[i]->section = i;
 		sectionData.cubes[i]->InitMesh();
 	}
-	Tick(0.0);
+	//Tick(0.0);
 
 }
 

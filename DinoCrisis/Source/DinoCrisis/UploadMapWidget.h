@@ -24,7 +24,7 @@ class DINOCRISIS_API UUploadMapWidget : public UUserWidget
 public:
 
 	UFUNCTION(BlueprintCallable)
-	void uploadMap();
+	void uploadMap(FString mapName);
 
 	void OnUploadResponseRecieved(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 

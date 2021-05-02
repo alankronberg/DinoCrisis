@@ -17,6 +17,8 @@ class DINOCRISIS_API ADinoCrisisGameModeBase : public AGameModeBase
 	UFUNCTION(BlueprintCallable)
 	FString getMapDataFromFile();
 
+	
+
 	UFUNCTION(BlueprintCallable)
 		void logMessage(FString message);
 };

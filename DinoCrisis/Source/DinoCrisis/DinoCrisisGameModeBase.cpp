@@ -4,6 +4,7 @@
 #include "DinoCrisisGameModeBase.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Kismet/GameplayStatics.h"
 
 FString ADinoCrisisGameModeBase::getMapDataFromFile()
 {
