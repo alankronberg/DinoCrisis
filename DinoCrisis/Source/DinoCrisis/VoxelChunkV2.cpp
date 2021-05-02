@@ -321,7 +321,7 @@ AVoxelChunkV2::AVoxelChunkV2()
 	//}
 
 
-	
+		float uvSpacing = 1 / CUBES_PER_SIDE;
 	//for (int z = 0; z < CUBES_PER_SIDE; z++) {
 		for (int y = 0; y < CUBES_PER_SIDE; y++) {
 			for (int x = 0; x < CUBES_PER_SIDE; x++) {
@@ -333,9 +333,17 @@ AVoxelChunkV2::AVoxelChunkV2()
 		Triangles.Add(i);
 		Triangles.Add(i + 2);
 		Triangles.Add(i + 1);
-		UVs.Add(FVector2D(0.f, 0.f));
-		UVs.Add(FVector2D(0.f, 1.f));
-		UVs.Add(FVector2D(1.f, 0.f));
+		if (Vertices[i].X == Vertices[i + 1].X) {
+			UVs.Add(FVector2D(0.f, 0.f));
+			UVs.Add(FVector2D(0.f, 1.f));
+			UVs.Add(FVector2D(1.f, 0.f));
+		}
+		else {
+			UVs.Add(FVector2D(1.f, 0.f));
+			UVs.Add(FVector2D(0.f, 0.f));
+			UVs.Add(FVector2D(0.f, 1.f));
+		}
+		
 	}
 	PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
 	FNavigationSystem::UpdateComponentData(*PMC);
@@ -620,6 +628,7 @@ void MeshCalculator::DoWork()
 	chunk->UVs.Reset(MAX_VERTS);
 	chunk->Normals.Reset();
 	chunk->Tangents.Reset();
+	float uvSpacing = 1 / (CUBES_PER_SIDE * CUBE_SIZE);
 	for (int z = 0; z < CUBES_PER_SIDE; z++) {
 		for (int y = 0; y < CUBES_PER_SIDE; y++) {
 			for (int x = 0; x < CUBES_PER_SIDE; x++) {
@@ -631,9 +640,16 @@ void MeshCalculator::DoWork()
 		chunk->Triangles.Add(i);
 		chunk->Triangles.Add(i + 2);
 		chunk->Triangles.Add(i + 1);
-		chunk->UVs.Add(FVector2D(0.f, 0.f));
-		chunk->UVs.Add(FVector2D(0.f, 1.f));
-		chunk->UVs.Add(FVector2D(1.f, 0.f));
+		if (chunk->Vertices[i].X == chunk->Vertices[i + 1].X) {
+			chunk->UVs.Add(FVector2D(0.f, 0.f));
+			chunk->UVs.Add(FVector2D(0.f, 1.f));
+			chunk->UVs.Add(FVector2D(1.f, 0.f));
+		}
+		else {
+			chunk->UVs.Add(FVector2D(1.f, 0.f));
+			chunk->UVs.Add(FVector2D(0.f, 0.f));
+			chunk->UVs.Add(FVector2D(0.f, 1.f));
+		}
 	}
 
 	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(chunk->Vertices, chunk->Triangles, chunk->UVs, chunk->Normals, chunk->Tangents);

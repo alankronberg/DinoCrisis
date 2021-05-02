@@ -13,7 +13,7 @@ ALargeCarnivoreCharacter::ALargeCarnivoreCharacter()
 	hunger = 20;
 	maxHunger = 20;
 	slowSpeed = 200.0f;
-	normalSpeed = 500.0f;
+	normalSpeed = 1000.0f;
 	isStarving = false;
 	isInjured = false;
 }

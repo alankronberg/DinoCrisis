@@ -20,8 +20,8 @@ ALargeHerbivoreCharacter::ALargeHerbivoreCharacter()
 	maxHealth = 20;
 	hunger = 20;
 	maxHunger = 20;
-	slowSpeed = 200.0f;
-	normalSpeed = 500.0f;
+	slowSpeed = 50.0f;
+	normalSpeed = 100.0f;
 	isStarving = false;
 	isInjured = false;
 }
