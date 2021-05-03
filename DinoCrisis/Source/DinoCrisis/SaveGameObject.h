@@ -15,11 +15,11 @@ struct FChunkSave {
 	GENERATED_BODY()
 public:
 	FChunkSave(){}
-	FChunkSave(TArray<float> chunkData) {
+	FChunkSave(TArray<int32> chunkData) {
 		this->data = chunkData;
 	}
 	UPROPERTY(BlueprintReadWrite)
-	TArray<float> data;
+	TArray<int32> data;
 };
 
 UCLASS()

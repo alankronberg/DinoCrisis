@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "BaseDinoCharacter.h"
 #include "Vegetation.h"
+#include "VoxelChunkV2.h"
 #include "GameFramework/GameModeBase.h"
 #include "DinoCrisisGameModeBase.generated.h"
 
@@ -29,5 +30,6 @@ class DINOCRISIS_API ADinoCrisisGameModeBase : public AGameModeBase
 			TArray<ABaseDinoCharacter*> allDinos;
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 			TArray<AVegetation*> allVegetation;
-
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+			TArray<AVoxelChunkV2*> chunks;
 };

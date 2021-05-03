@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
 #include "Engine/World.h"
+#include "DinoCrisisGameModeBase.h"
 #include "CubeWorldPawn.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -354,6 +355,9 @@ AVoxelChunkV2::AVoxelChunkV2()
 void AVoxelChunkV2::BeginPlay()
 {
 	Super::BeginPlay();
+	ADinoCrisisGameModeBase* gm = (ADinoCrisisGameModeBase*)GetWorld()->GetAuthGameMode();
+	gm->chunks.Add(this);
+
 }
 
 void AVoxelChunkV2::MarchingCubes(int tX, int tY, int tZ)
@@ -557,6 +561,11 @@ TArray<int32> AVoxelChunkV2::dumpChunkData()
 
 void AVoxelChunkV2::fillChunkData(TArray<int32> chunkData)
 {
+	Vertices.Reset(MAX_VERTS);
+	Triangles.Reset(MAX_VERTS);
+	UVs.Reset(MAX_VERTS);
+	Normals.Reset();
+	Tangents.Reset();
 	int32 index = 0;
 	for (int32 x = 0; x <= CUBES_PER_SIDE; x++) {
 		for (int32 y = 0; y <= CUBES_PER_SIDE; y++) {
@@ -587,9 +596,26 @@ void AVoxelChunkV2::fillChunkData(TArray<int32> chunkData)
 		Triangles.Add(i);
 		Triangles.Add(i + 2);
 		Triangles.Add(i + 1);
-		UVs.Add(FVector2D(0.f, 0.f));
-		UVs.Add(FVector2D(0.f, 1.f));
-		UVs.Add(FVector2D(1.f, 0.f));
+		/*FVector ab = Vertices[i + 1] - Vertices[i];
+		FVector ac = Vertices[i + 2] - Vertices[i];
+		FVector normal = FVector::CrossProduct(ab, ac);
+		normal.Normalize();
+		Normals.Add(normal);
+		Normals.Add(normal);
+		Normals.Add(normal);
+		Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+		Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+		Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));*/
+		if (Vertices[i].X == Vertices[i + 1].X) {
+			UVs.Add(FVector2D(0.f, 0.f));
+			UVs.Add(FVector2D(0.f, 1.f));
+			UVs.Add(FVector2D(1.f, 0.f));
+		}
+		else {
+			UVs.Add(FVector2D(1.f, 0.f));
+			UVs.Add(FVector2D(0.f, 0.f));
+			UVs.Add(FVector2D(0.f, 1.f));
+		}
 	}
 	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVs, Normals, Tangents);
 	PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
