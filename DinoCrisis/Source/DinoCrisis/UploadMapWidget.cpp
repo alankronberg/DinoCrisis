@@ -16,7 +16,7 @@ void UUploadMapWidget::uploadMap(FString mapName)
 	TArray<uint8> Content;
 
 	Request->OnProcessRequestComplete().BindUObject(this, &UUploadMapWidget::OnUploadResponseRecieved);
-	Request->SetURL("http://10.0.0.187:9001/uploadMap");
+	Request->SetURL("http://174.138.48.164:9001/uploadMap");
 	Request->SetVerb("POST");
 	Request->SetHeader(FString("Content-Type"), "multipart/form-data; boundary=zzzzzz");
 	

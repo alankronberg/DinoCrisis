@@ -47,7 +47,7 @@ void UMapListWidget::downloadMap(int32 mapID)
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 
 	Request->OnProcessRequestComplete().BindUObject(this, &UMapListWidget::OnDownloadMapResponseRecieved);
-	FString url = FString(TEXT("http://10.0.0.187:9001/map?id="));
+	FString url = FString(TEXT("http://174.138.48.164:9001/map?id="));
 	url.AppendInt(mapID);
 	Request->SetURL(url);
 	Request->SetVerb("GET");
