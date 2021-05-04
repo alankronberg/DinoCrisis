@@ -25,6 +25,9 @@ class DINOCRISIS_API ADinoCrisisGameModeBase : public AGameModeBase
 	UFUNCTION(BlueprintCallable)
 		void logMessage(FString message);
 
+	UFUNCTION(BlueprintCallable)
+		TArray<int32> getIntsFromString(FString input);
+
 	public:
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 			TArray<ABaseDinoCharacter*> allDinos;
