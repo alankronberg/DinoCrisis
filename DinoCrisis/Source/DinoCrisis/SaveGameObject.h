@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
 #include "VoxelChunk.h"
+#include "BaseDinoCharacter.h"
+#include "Vegetation.h"
 #include "SaveGameObject.generated.h"
 
 /**
@@ -34,5 +36,33 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	TArray<FChunkSave> Chunks;
 	FChunkSave chunk;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<ABaseDinoCharacter*> Dino_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<FString> Dino_Names_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<FTransform> Dino_Location_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<int> Health_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<int> Hunger_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<int> Max_Health_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<int> Max_Hunger_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<bool> Is_Injured_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<float> Slow_Speed_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<float> Normal_Speed_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<AVegetation*> Vegetation_Save;
+	UPROPERTY(BlueprintReadWrite)
+		TArray<FTransform> Vegetation_Location_Save;
+	UPROPERTY(BlueprintReadWrite)
+		int Points_Save;
+	UPROPERTY(BlueprintReadWrite)
+		FTransform Player_Location_Save;
 	
 };
