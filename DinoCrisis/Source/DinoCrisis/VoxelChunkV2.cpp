@@ -300,6 +300,63 @@ AVoxelChunkV2::AVoxelChunkV2()
 	UVs.Reserve(MAX_VERTS);
 
 
+	//for (int z = 0; z < CUBES_PER_SIDE + 1; z++) {
+	//	for (int y = 0; y < CUBES_PER_SIDE + 1; y++) {
+	//		for (int x = 0; x < CUBES_PER_SIDE + 1; x++) {
+	//			if (z == 0) {
+	//				cornerValues[x][y][z] = 1;
+	//			}
+	//			else {
+	//				cornerValues[x][y][z] = 0;
+	//			}
+	//		}
+	//	}
+	//}
+
+	////for (int z = 0; z < CUBES_PER_SIDE; z++) {
+	//	for (int y = 0; y < CUBES_PER_SIDE; y++) {
+	//		for (int x = 0; x < CUBES_PER_SIDE; x++) {
+	//			MarchingCubes(x, y, 0);
+	//		}
+	//	}
+	////}
+
+
+	//	float uvSpacing = 1 / CUBES_PER_SIDE;
+	////for (int z = 0; z < CUBES_PER_SIDE; z++) {
+	//	for (int y = 0; y < CUBES_PER_SIDE; y++) {
+	//		for (int x = 0; x < CUBES_PER_SIDE; x++) {
+	//			Vertices.Append(cubeVerts[x][y][0]);
+	//		}
+	//	}
+	////}
+	//for (int i = 0; i < Vertices.Num(); i += 3) {
+	//	Triangles.Add(i);
+	//	Triangles.Add(i + 2);
+	//	Triangles.Add(i + 1);
+	//	if (Vertices[i].X == Vertices[i + 1].X) {
+	//		UVs.Add(FVector2D(0.f, 0.f));
+	//		UVs.Add(FVector2D(0.f, 1.f));
+	//		UVs.Add(FVector2D(1.f, 0.f));
+	//	}
+	//	else {
+	//		UVs.Add(FVector2D(1.f, 0.f));
+	//		UVs.Add(FVector2D(0.f, 0.f));
+	//		UVs.Add(FVector2D(0.f, 1.f));
+	//	}
+	//	
+	//}
+	//PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
+	//FNavigationSystem::UpdateComponentData(*PMC);
+	
+}
+
+// Called when the game starts or when spawned
+void AVoxelChunkV2::BeginPlay()
+{
+	Super::BeginPlay();
+	ADinoCrisisGameModeBase* gm = (ADinoCrisisGameModeBase*)GetWorld()->GetAuthGameMode();
+	gm->chunks.Add(this);
 	for (int z = 0; z < CUBES_PER_SIDE + 1; z++) {
 		for (int y = 0; y < CUBES_PER_SIDE + 1; y++) {
 			for (int x = 0; x < CUBES_PER_SIDE + 1; x++) {
@@ -348,15 +405,6 @@ AVoxelChunkV2::AVoxelChunkV2()
 	}
 	PMC->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, TArray<FLinearColor>(), Tangents, true);
 	FNavigationSystem::UpdateComponentData(*PMC);
-	
-}
-
-// Called when the game starts or when spawned
-void AVoxelChunkV2::BeginPlay()
-{
-	Super::BeginPlay();
-	ADinoCrisisGameModeBase* gm = (ADinoCrisisGameModeBase*)GetWorld()->GetAuthGameMode();
-	gm->chunks.Add(this);
 
 }
 
@@ -629,11 +677,11 @@ void AVoxelChunkV2::Write()
 	for (int32 x = 0; x <= CUBES_PER_SIDE; x++) {
 		for (int32 y = 0; y <= CUBES_PER_SIDE; y++) {
 			for (int32 z = 0; z <= CUBES_PER_SIDE; z++) {
-				FileContent += (FString::FromInt(cornerValues[x][y][z]) + TEXT(","));
+				FileContent += FString::FromInt(cornerValues[x][y][z]);
 			}
 		}
 	}
-	FileContent += TEXT("\n");
+	FileContent += TEXT(";");
 	FFileHelper::SaveStringToFile(FileContent, *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
 }
 
